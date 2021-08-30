@@ -11,3 +11,5 @@ import (
 func openBrowser(url string) error {
 	return fmt.Errorf("openBrowser: unsupported operating system: %v", runtime.GOOS)
 }
+
+func setFlags(cmd *exec.Cmd) {}

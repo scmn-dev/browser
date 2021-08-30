@@ -24,24 +24,34 @@ func OpenFile(path string) error {
 	if err != nil {
 		return err
 	}
+
 	return OpenURL("file://" + path)
 }
 
 // OpenReader consumes the contents of r and presents the
 // results in a new browser window.
 func OpenReader(r io.Reader) error {
-	f, err := ioutil.TempFile("", "browser.*.html")
+	f, err := ioutil.TempFile("", "browser")
 	if err != nil {
-		return fmt.Errorf("browser: could not create temporary file: %v", err)
+		return fmt.Errorf("browser: could not create temporary file: %w", err)
 	}
+
 	if _, err := io.Copy(f, r); err != nil {
 		f.Close()
-		return fmt.Errorf("browser: caching temporary file failed: %v", err)
+		return fmt.Errorf("browser: caching temporary file failed: %w", err)
 	}
+
 	if err := f.Close(); err != nil {
-		return fmt.Errorf("browser: caching temporary file failed: %v", err)
+		return fmt.Errorf("browser: caching temporary file failed: %w", err)
 	}
-	return OpenFile(f.Name())
+
+	oldname := f.Name()
+	newname := oldname + ".html"
+	if err := os.Rename(oldname, newname); err != nil {
+		return fmt.Errorf("browser: renaming temporary file failed: %w", err)
+	}
+
+	return OpenFile(newname)
 }
 
 // OpenURL opens a new browser window pointing to url.
@@ -53,5 +63,6 @@ func runCmd(prog string, args ...string) error {
 	cmd := exec.Command(prog, args...)
 	cmd.Stdout = Stdout
 	cmd.Stderr = Stderr
+	setFlags(cmd)
 	return cmd.Run()
 }

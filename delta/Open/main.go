@@ -10,6 +10,7 @@
 //
 //    # Open the contents of stdin in a browser window
 //    cat $SOMEFILE | Open
+
 package main
 
 import (
@@ -17,12 +18,14 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
+	"strings"
 
-	"github.com/pkg/browser"
+	"github.com/scmn-dev/browser"
 )
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "Usage:\n  %s [file]\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "Usage:\n  %s {<url> | <file> | -}\n", filepath.Base(os.Args[0]))
 	flag.PrintDefaults()
 }
 
@@ -39,12 +42,21 @@ func check(err error) {
 
 func main() {
 	args := flag.Args()
-	switch len(args) {
-	case 0:
-		check(browser.OpenReader(os.Stdin))
-	case 1:
-		check(browser.OpenFile(args[0]))
-	default:
+
+	if len(args) != 1 {
 		usage()
+		os.Exit(1)
 	}
+
+	if args[0] == "-" {
+		check(browser.OpenReader(os.Stdin))
+		return
+	}
+
+	if strings.HasPrefix(args[0], "http:") || strings.HasPrefix(args[0], "https:") {
+		check(browser.OpenURL(args[0]))
+		return
+	}
+
+	check(browser.OpenFile(args[0]))
 }

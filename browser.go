@@ -66,3 +66,5 @@ func runCmd(prog string, args ...string) error {
 	setFlags(cmd)
 	return cmd.Run()
 }
+
+func setFlags(cmd *exec.Cmd) {}
